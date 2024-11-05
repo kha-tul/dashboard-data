@@ -43,8 +43,10 @@ def get_page_insights(page_id, start_date, end_date):
                 })
                 
                 # Adiciona a métrica se retornar resultados
-                if insights and isinstance(insights, list) and len(insights) > 0:
+                if insights is not None and isinstance(insights, list) and len(insights) > 0:
                     valid_metrics.append(metric)
+                else:
+                    print(f"Nenhum resultado para a métrica: {metric}")
             except Exception as e:
                 print(f"Erro com a métrica {metric}: {e}")
 
@@ -60,7 +62,7 @@ def get_page_insights(page_id, start_date, end_date):
         try:
             insights = page.get_insights(params=params)
             # Verificar se os insights retornam resultados
-            if insights and isinstance(insights, list) and len(insights) > 0:
+            if insights is not None and isinstance(insights, list) and len(insights) > 0:
                 return insights
             else:
                 print("Nenhum insight retornado ou resultado inválido.")
