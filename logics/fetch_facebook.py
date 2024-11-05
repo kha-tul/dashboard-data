@@ -3,7 +3,7 @@ from facebook_business.adobjects.page import Page
 def get_page_insights(page_id, start_date, end_date):
     page = Page(page_id)
 
-    # Lista de métricas válidas (removendo as que estão dando erro)
+    # Lista de métricas válidas
     metrics = [
         'page_post_engagements',
         'page_impressions',
@@ -23,10 +23,12 @@ def get_page_insights(page_id, start_date, end_date):
     ]
     
     valid_metrics = []
+    insights_data = {}
+
     for metric in metrics:
         try:
             insights = page.get_insights(params={
-                'metric': [metric],  # Passando como lista com um único item
+                'metric': [metric],
                 'since': start_date,
                 'until': end_date,
                 'period': 'day'
@@ -34,6 +36,7 @@ def get_page_insights(page_id, start_date, end_date):
 
             if insights and isinstance(insights, list) and len(insights) > 0:
                 valid_metrics.append(metric)
+                insights_data[metric] = insights  # Armazenar insights válidos
             else:
                 print(f"Nenhum resultado para a métrica: {metric}")
         except Exception as e:
@@ -41,22 +44,8 @@ def get_page_insights(page_id, start_date, end_date):
 
     if valid_metrics:
         print(f"Métricas válidas encontradas: {', '.join(valid_metrics)}")
-        params = {
-            'metric': ','.join(valid_metrics),  # Passando as métricas válidas como string
-            'since': start_date,
-            'until': end_date,
-            'period': 'day'
-        }
-        try:
-            insights = page.get_insights(params=params)
-            if insights and isinstance(insights, list):
-                return insights
-            else:
-                print("Nenhum insight retornado ou resultado inválido.")
-                return None
-        except Exception as e:
-            print(f"Erro ao obter os insights: {e}")
-            return None
+        return insights_data  # Retorna dados acumulados
+
     else:
         print("Nenhuma métrica válida encontrada.")
         return None
@@ -68,7 +57,9 @@ if __name__ == "__main__":
     end_date = '2024-11-05'
 
     insights = get_page_insights(page_id, start_date, end_date)
+    
     if insights:
-        print(insights)
+        for metric, data in insights.items():
+            print(f"Insights para {metric}: {data}")  # Exibir dados de cada métrica
     else:
         print("Não foi possível obter os insights.")
