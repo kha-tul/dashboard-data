@@ -35,53 +35,71 @@ if export_button:
 
 try:
     # Carregar dados de insights da página
+    results = facebook_api_data_load(page_id, start_date, end_date)
+
+    # Debug: Exibir o resultado da função de carregamento
+    st.write("Resultados de facebook_api_data_load:", results)
+
+    if len(results) < 18:  # Espera-se que haja 18 retornos
+        st.error("Erro: Número insuficiente de dados retornados pela função facebook_api_data_load.")
+        st.write("Dados retornados:", results)
+        raise ValueError("Número insuficiente de dados retornados.")
+
     (page_insights, dates, page_post_engagements, page_impressions, page_impressions_unique,
      page_fans, unique_page_fan, page_follows, page_views,
      page_negative_feedback_unique, page_impressions_viral,
      page_fan_adds_by_paid_non_paid_unique, page_daily_follows_unique,
      page_daily_unfollows_unique, page_impressions_by_age_gender_unique,
      page_impressions_organic_unique_v2, page_impressions_paid, post_reactions,
-     page_fans_country, page_fan_adds, page_fan_removes) = facebook_api_data_load(page_id, start_date, end_date)
+     page_fans_country, page_fan_adds, page_fan_removes) = results
 
-    # Carregar dados de anúncios
-    ads_insights_, ada_account = facebook_ads_data_load(user_access_token, adaccount_account_id, adaccount_id, selected_range)
-    ads_insights = pd.DataFrame(ads_insights_)
+    # Debug: Verifique se cada variável possui dados esperados
+    st.write("page_insights:", page_insights)
+    st.write("dates:", dates)
+    st.write("page_post_engagements:", page_post_engagements)
 
-    # Agrupando detalhes dos anúncios
-    group_ads_details = group_by_ad_name(ads_insights)
-    group_ads_details['roi'] = round((group_ads_details['conversions'] / group_ads_details['spend']) * 100, 2)
-    ad_names = group_ads_details['ad_name']
-    roi = group_ads_details['roi']
-    spend = group_ads_details['spend']
-    conversions = group_ads_details['conversions']
+    # Continuar apenas se page_insights não estiver vazio
+    if not page_insights:
+        st.write("No insights data available")
+    else:
+        # Carregar dados de anúncios
+        ads_insights_, ada_account = facebook_ads_data_load(user_access_token, adaccount_account_id, adaccount_id, selected_range)
+        ads_insights = pd.DataFrame(ads_insights_)
 
-    # Exibir cartões com dados de insights da página
-    col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
-    
-    with col1:
-        title = "Total de Visualizações de Página"
-        cards(title, page_views.sum()[0] if not page_views.empty else 0)  # Verifique se page_views não está vazio
+        # Agrupando detalhes dos anúncios
+        group_ads_details = group_by_ad_name(ads_insights)
+        group_ads_details['roi'] = round((group_ads_details['conversions'] / group_ads_details['spend']) * 100, 2)
+        ad_names = group_ads_details['ad_name']
+        roi = group_ads_details['roi']
+        spend = group_ads_details['spend']
+        conversions = group_ads_details['conversions']
 
-    with col2:
-        title = "Total de Seguidores"
-        cards(title, page_follows.sum()[0] if not page_follows.empty else 0)  # Verifique se page_follows não está vazio
+        # Exibir cartões com dados de insights da página
+        col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+        
+        # Verificações adicionais para evitar 'list index out of range'
+        with col1:
+            title = "Total de Visualizações de Página"
+            cards(title, page_views.sum()[0] if not page_views.empty else 0)
 
-    with col3:
-        title = "Total de Curtidas"
-        cards(title, unique_page_fan if unique_page_fan else 0)  # Verifique se unique_page_fan não é None
+        with col2:
+            title = "Total de Seguidores"
+            cards(title, page_follows.sum()[0] if not page_follows.empty else 0)
 
-    with col4:
-        title = "Feedbacks Negativos"
-        cards(title, page_negative_feedback_unique.sum()[0] if not page_negative_feedback_unique.empty else 0)  # Verifique se page_negative_feedback_unique não está vazio
+        with col3:
+            title = "Total de Curtidas"
+            cards(title, unique_page_fan if unique_page_fan else 0)
 
-    with col5:
-        title = "Impressões Virais"
-        cards(title, page_impressions_viral.sum()[0] if not page_impressions_viral.empty else 0)  # Verifique se page_impressions_viral não está vazio
+        with col4:
+            title = "Feedbacks Negativos"
+            cards(title, page_negative_feedback_unique.sum()[0] if not page_negative_feedback_unique.empty else 0)
 
-    st.divider()
+        with col5:
+            title = "Impressões Virais"
+            cards(title, page_impressions_viral.sum()[0] if not page_impressions_viral.empty else 0)
 
-    # Se houver dados de insights
-    if page_insights:
+        st.divider()
+
         page_impression_engagement(page_post_engagements, page_impressions, page_impressions_unique, dates)
 
         col1, col2 = st.columns([1, 1])
@@ -125,9 +143,6 @@ try:
             ads_stacked_bar_chart(ad_names, roi, spend, conversions, selected_range)
         except Exception as ad_error:
             st.warning(f"Error processing ads insights: {ad_error}")
-
-    else:
-        st.write("No insights data available")
 
 except Exception as e:
     st.error(f"Error fetching page insights: {e}")
