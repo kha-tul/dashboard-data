@@ -40,18 +40,22 @@ try:
     # Debug: Exibir o resultado da função de carregamento
     st.write("Resultados de facebook_api_data_load:", results)
 
-    if len(results) < 18:  # Espera-se que haja 18 retornos
-        st.error("Erro: Número insuficiente de dados retornados pela função facebook_api_data_load.")
-        st.write("Dados retornados:", results)
-        raise ValueError("Número insuficiente de dados retornados.")
-
-    (page_insights, dates, page_post_engagements, page_impressions, page_impressions_unique,
-     page_fans, unique_page_fan, page_follows, page_views,
-     page_negative_feedback_unique, page_impressions_viral,
-     page_fan_adds_by_paid_non_paid_unique, page_daily_follows_unique,
-     page_daily_unfollows_unique, page_impressions_by_age_gender_unique,
-     page_impressions_organic_unique_v2, page_impressions_paid, post_reactions,
-     page_fans_country, page_fan_adds, page_fan_removes) = results
+    # Verificando o tamanho e a estrutura da resposta
+    if isinstance(results, (list, tuple)) and len(results) >= 18:
+        # Se a estrutura estiver correta, descompacte os valores
+        (page_insights, dates, page_post_engagements, page_impressions, page_impressions_unique,
+         page_fans, unique_page_fan, page_follows, page_views,
+         page_negative_feedback_unique, page_impressions_viral,
+         page_fan_adds_by_paid_non_paid_unique, page_daily_follows_unique,
+         page_daily_unfollows_unique, page_impressions_by_age_gender_unique,
+         page_impressions_organic_unique_v2, page_impressions_paid, post_reactions,
+         page_fans_country, page_fan_adds, page_fan_removes) = results
+    else:
+        # Log de erro se a estrutura não estiver correta
+        st.error("Erro: Resposta inesperada da função facebook_api_data_load.")
+        st.write("Tipo de resultados:", type(results))
+        st.write("Conteúdo dos resultados:", results)
+        raise ValueError("Número insuficiente de dados retornados ou formato inesperado.")
 
     # Debug: Verifique se cada variável possui dados esperados
     st.write("page_insights:", page_insights)
