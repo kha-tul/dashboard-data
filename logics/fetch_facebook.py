@@ -42,7 +42,7 @@ def get_page_insights(page_id, start_date, end_date):
                     'period': 'day'
                 })
                 # Adiciona a métrica se retornar resultados
-                if insights:
+                if insights and isinstance(insights, list) and len(insights) > 0:
                     valid_metrics.append(metric)
             except Exception as e:
                 print(f"Erro com a métrica {metric}: {e}")
@@ -51,7 +51,7 @@ def get_page_insights(page_id, start_date, end_date):
     if valid_metrics:
         print(f"Métricas válidas encontradas: {', '.join(valid_metrics)}")
         params = {
-            'metric': valid_metrics,  # Passamos a lista de métricas válidas diretamente
+            'metric': ','.join(valid_metrics),  # Passamos a lista de métricas válidas como uma string
             'since': start_date,
             'until': end_date,
             'period': 'day'
@@ -59,7 +59,7 @@ def get_page_insights(page_id, start_date, end_date):
         try:
             insights = page.get_insights(params=params)
             # Verificar se os insights retornam resultados
-            if insights:
+            if insights and isinstance(insights, list) and len(insights) > 0:
                 return insights
             else:
                 print("Nenhum insight retornado.")
