@@ -57,16 +57,26 @@ try:
 
     # Exibir cartões com dados de insights da página
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
+    
     with col1:
-        cards("Total de Visualizações de Página", page_views.sum()[0] if not page_views.empty else 0)
+        title = "Total de Visualizações de Página"
+        cards(title, page_views.sum()[0] if not page_views.empty else 0)  # Verifique se page_views não está vazio
+
     with col2:
-        cards("Total de Seguidores", page_follows.sum()[0] if not page_follows.empty else 0)
+        title = "Total de Seguidores"
+        cards(title, page_follows.sum()[0] if not page_follows.empty else 0)  # Verifique se page_follows não está vazio
+
     with col3:
-        cards("Total de Curtidas", unique_page_fan)
+        title = "Total de Curtidas"
+        cards(title, unique_page_fan if unique_page_fan else 0)  # Verifique se unique_page_fan não é None
+
     with col4:
-        cards("Feedbacks Negativos", page_negative_feedback_unique.sum()[0] if not page_negative_feedback_unique.empty else 0)
+        title = "Feedbacks Negativos"
+        cards(title, page_negative_feedback_unique.sum()[0] if not page_negative_feedback_unique.empty else 0)  # Verifique se page_negative_feedback_unique não está vazio
+
     with col5:
-        cards("Impressões Virais", page_impressions_viral.sum()[0] if not page_impressions_viral.empty else 0)
+        title = "Impressões Virais"
+        cards(title, page_impressions_viral.sum()[0] if not page_impressions_viral.empty else 0)  # Verifique se page_impressions_viral não está vazio
 
     st.divider()
 
