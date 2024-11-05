@@ -3,7 +3,7 @@ from facebook_business.adobjects.page import Page
 def get_page_insights(page_id, start_date, end_date):
     page = Page(page_id)
     
-    # Lista de métricas
+    # Lista de métricas conhecidas
     metrics = [
         'page_post_engagements',                    
         'page_impressions',                          
@@ -11,13 +11,10 @@ def get_page_insights(page_id, start_date, end_date):
         'page_fans',                                 
         'page_daily_follows',                        
         'page_views_total',                          
-        'page_negative_feedback_unique',             
         'page_impressions_viral',                    
         'page_fan_adds_by_paid_non_paid_unique',     
         'page_daily_follows_unique',                 
         'page_daily_unfollows_unique',               
-        'page_impressions_by_age_gender_unique',     
-        'page_impressions_organic_unique_v2',        
         'page_impressions_paid',                     
         'page_actions_post_reactions_total',         
         'page_fans_country',                         
@@ -25,22 +22,30 @@ def get_page_insights(page_id, start_date, end_date):
         'page_fan_removes',                          
     ]
     
-    # Tente acessar as métricas e capture a exceção para verificar quais são válidas
+    # Lista de métricas a serem ignoradas por não serem válidas
+    invalid_metrics = [
+        'page_negative_feedback_unique',
+        'page_impressions_by_age_gender_unique',
+        'page_impressions_organic_unique_v2'
+    ]
+    
+    # Filtrar métricas conhecidas para evitar chamadas inválidas
     valid_metrics = []
     for metric in metrics:
-        try:
-            # Verificar se a métrica é válida
-            insights = page.get_insights(params={
-                'metric': [metric],  # Aqui, passamos a métrica como uma lista
-                'since': start_date,
-                'until': end_date,
-                'period': 'day'
-            })
-            # Adiciona a métrica se retornar resultados
-            if insights:
-                valid_metrics.append(metric)
-        except Exception as e:
-            print(f"Erro com a métrica {metric}: {e}")
+        if metric not in invalid_metrics:
+            try:
+                # Verificar se a métrica é válida
+                insights = page.get_insights(params={
+                    'metric': [metric],  # Passando a métrica como uma lista
+                    'since': start_date,
+                    'until': end_date,
+                    'period': 'day'
+                })
+                # Adiciona a métrica se retornar resultados
+                if insights:
+                    valid_metrics.append(metric)
+            except Exception as e:
+                print(f"Erro com a métrica {metric}: {e}")
 
     # Se todas as métricas forem válidas, faça uma chamada completa
     if valid_metrics:
