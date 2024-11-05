@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 from facebook_business.api import FacebookAdsApi
 
@@ -40,33 +40,20 @@ try:
     # Debug: Exibir o resultado da função de carregamento
     st.write("Resultados de facebook_api_data_load:", results)
 
-    # Verificando o tipo e o conteúdo da resposta
-    if isinstance(results, (list, tuple)):
-        st.write(f"Quantidade de elementos retornados: {len(results)}")
-        st.write("Conteúdo dos resultados:", results)
+    # Verificação e descompactação de resultados
+    if not isinstance(results, (list, tuple)) or len(results) != 18:
+        st.error("Resposta da função `facebook_api_data_load` não contém a quantidade esperada de elementos.")
+        raise ValueError("Número insuficiente de dados retornados.")
+    
+    (page_insights, dates, page_post_engagements, page_impressions, page_impressions_unique,
+     page_fans, unique_page_fan, page_follows, page_views,
+     page_negative_feedback_unique, page_impressions_viral,
+     page_fan_adds_by_paid_non_paid_unique, page_daily_follows_unique,
+     page_daily_unfollows_unique, page_impressions_by_age_gender_unique,
+     page_impressions_organic_unique_v2, page_impressions_paid, post_reactions,
+     page_fans_country, page_fan_adds, page_fan_removes) = results
 
-        if len(results) >= 18:
-            # Se a estrutura estiver correta, descompacte os valores
-            (page_insights, dates, page_post_engagements, page_impressions, page_impressions_unique,
-             page_fans, unique_page_fan, page_follows, page_views,
-             page_negative_feedback_unique, page_impressions_viral,
-             page_fan_adds_by_paid_non_paid_unique, page_daily_follows_unique,
-             page_daily_unfollows_unique, page_impressions_by_age_gender_unique,
-             page_impressions_organic_unique_v2, page_impressions_paid, post_reactions,
-             page_fans_country, page_fan_adds, page_fan_removes) = results
-        else:
-            st.error("Resposta da função `facebook_api_data_load` não contém a quantidade esperada de elementos.")
-            raise ValueError("Número insuficiente de dados retornados.")
-    else:
-        st.error(f"A resposta não é uma lista ou tupla. Tipo retornado: {type(results)}")
-        raise TypeError("Resposta inesperada de facebook_api_data_load")
-
-    # Verificando se as variáveis possuem dados esperados
-    st.write("page_insights:", page_insights)
-    st.write("dates:", dates)
-    st.write("page_post_engagements:", page_post_engagements)
-
-    # Se page_insights não tiver dados
+    # Verificando se page_insights tem dados
     if not page_insights:
         st.write("No insights data available")
     else:
@@ -84,15 +71,14 @@ try:
 
         # Exibir cartões com dados de insights da página
         col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
-        
-        # Verificações adicionais para evitar 'list index out of range'
+
         with col1:
             title = "Total de Visualizações de Página"
-            cards(title, page_views.sum()[0] if not page_views.empty else 0)
+            cards(title, page_views.sum().values[0] if not page_views.empty else 0)
 
         with col2:
             title = "Total de Seguidores"
-            cards(title, page_follows.sum()[0] if not page_follows.empty else 0)
+            cards(title, page_follows.sum().values[0] if not page_follows.empty else 0)
 
         with col3:
             title = "Total de Curtidas"
@@ -100,11 +86,11 @@ try:
 
         with col4:
             title = "Feedbacks Negativos"
-            cards(title, page_negative_feedback_unique.sum()[0] if not page_negative_feedback_unique.empty else 0)
+            cards(title, page_negative_feedback_unique.sum().values[0] if not page_negative_feedback_unique.empty else 0)
 
         with col5:
             title = "Impressões Virais"
-            cards(title, page_impressions_viral.sum()[0] if not page_impressions_viral.empty else 0)
+            cards(title, page_impressions_viral.sum().values[0] if not page_impressions_viral.empty else 0)
 
         st.divider()
 
@@ -152,5 +138,9 @@ try:
         except Exception as ad_error:
             st.warning(f"Error processing ads insights: {ad_error}")
 
+except ValueError as ve:
+    st.error(f"Value Error: {ve}")
+except TypeError as te:
+    st.error(f"Type Error: {te}")
 except Exception as e:
     st.error(f"Error fetching page insights: {e}")
