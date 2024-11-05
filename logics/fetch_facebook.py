@@ -3,34 +3,47 @@ from facebook_business.adobjects.page import Page
 def get_page_insights(page_id, start_date, end_date):
     page = Page(page_id)
     
-    # Ajuste as métricas para serem uma string separada por vírgulas
+    # Lista de métricas
     metrics = [
-        'page_post_engagements',                    # 0
-        'page_impressions',                          # 1
-        'page_impressions_unique',                   # 2
-        'page_fans',                                 # 3
-        'page_daily_follows',                        # 4
-        'page_views_total',                          # 5
-        'page_negative_feedback_unique',             # 6
-        'page_impressions_viral',                    # 7
-        'page_fan_adds_by_paid_non_paid_unique',     # 8
-        'page_daily_follows_unique',                 # 9
-        'page_daily_unfollows_unique',               # 10
-        'page_impressions_by_age_gender_unique',     # 11
-        'page_impressions_organic_unique_v2',        # 12
-        'page_impressions_paid',                     # 13
-        'page_actions_post_reactions_total',         # 14
-        'page_fans_country',                         # 15
-        'page_fan_adds',                             # 16
-        'page_fan_removes',                          # 17
+        'page_post_engagements',                    
+        'page_impressions',                          
+        'page_impressions_unique',                   
+        'page_fans',                                 
+        'page_daily_follows',                        
+        'page_views_total',                          
+        'page_negative_feedback_unique',             
+        'page_impressions_viral',                    
+        'page_fan_adds_by_paid_non_paid_unique',     
+        'page_daily_follows_unique',                 
+        'page_daily_unfollows_unique',               
+        'page_impressions_by_age_gender_unique',     
+        'page_impressions_organic_unique_v2',        
+        'page_impressions_paid',                     
+        'page_actions_post_reactions_total',         
+        'page_fans_country',                         
+        'page_fan_adds',                             
+        'page_fan_removes',                          
     ]
     
-    params = {
-        'metric': ','.join(metrics),  # Junte as métricas em uma string separada por vírgulas
-        'since': start_date,
-        'until': end_date,
-        'period': 'day'
-    }
-    
-    insights = page.get_insights(params=params)
-    return insights
+    # Tente acessar as métricas e capture a exceção para verificar quais são válidas
+    valid_metrics = []
+    for metric in metrics:
+        try:
+            insights = page.get_insights(params={'metric': metric, 'since': start_date, 'until': end_date, 'period': 'day'})
+            valid_metrics.append(metric)
+        except Exception as e:
+            print(f"Erro com a métrica {metric}: {e}")
+
+    # Se todas as métricas forem válidas, faça uma chamada completa
+    if valid_metrics:
+        params = {
+            'metric': ','.join(valid_metrics),
+            'since': start_date,
+            'until': end_date,
+            'period': 'day'
+        }
+        insights = page.get_insights(params=params)
+        return insights
+    else:
+        print("Nenhuma métrica válida encontrada.")
+        return None
