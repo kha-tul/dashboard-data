@@ -29,21 +29,32 @@ def get_page_insights(page_id, start_date, end_date):
     valid_metrics = []
     for metric in metrics:
         try:
-            insights = page.get_insights(params={'metric': metric, 'since': start_date, 'until': end_date, 'period': 'day'})
+            # Verificar se a métrica é válida
+            insights = page.get_insights(params={
+                'metric': metric,
+                'since': start_date,
+                'until': end_date,
+                'period': 'day'
+            })
             valid_metrics.append(metric)
         except Exception as e:
             print(f"Erro com a métrica {metric}: {e}")
 
     # Se todas as métricas forem válidas, faça uma chamada completa
     if valid_metrics:
+        print(f"Métricas válidas encontradas: {', '.join(valid_metrics)}")
         params = {
             'metric': ','.join(valid_metrics),
             'since': start_date,
             'until': end_date,
             'period': 'day'
         }
-        insights = page.get_insights(params=params)
-        return insights
+        try:
+            insights = page.get_insights(params=params)
+            return insights
+        except Exception as e:
+            print(f"Erro ao obter os insights: {e}")
+            return None
     else:
         print("Nenhuma métrica válida encontrada.")
         return None
