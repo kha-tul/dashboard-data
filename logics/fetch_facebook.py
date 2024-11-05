@@ -1,8 +1,9 @@
 from facebook_business.adobjects.page import Page
+from facebook_business.api import FacebookAdsApi
 
 def get_page_insights(page_id, start_date, end_date):
     page = Page(page_id)
-
+    
     # Lista de métricas válidas
     metrics = [
         'page_post_engagements',
@@ -21,22 +22,23 @@ def get_page_insights(page_id, start_date, end_date):
         'page_fan_adds',
         'page_fan_removes',
     ]
-    
+
     valid_metrics = []
     insights_data = {}
 
     for metric in metrics:
         try:
             insights = page.get_insights(params={
-                'metric': [metric],
+                'metric': metric,  # Passa a métrica diretamente como string
                 'since': start_date,
                 'until': end_date,
                 'period': 'day'
             })
 
+            # Verifica se a resposta não é None e tem dados
             if insights and isinstance(insights, list) and len(insights) > 0:
                 valid_metrics.append(metric)
-                insights_data[metric] = insights  # Armazenar insights válidos
+                insights_data[metric] = insights  # Armazena insights válidos
             else:
                 print(f"Nenhum resultado para a métrica: {metric}")
         except Exception as e:
@@ -45,13 +47,18 @@ def get_page_insights(page_id, start_date, end_date):
     if valid_metrics:
         print(f"Métricas válidas encontradas: {', '.join(valid_metrics)}")
         return insights_data  # Retorna dados acumulados
-
     else:
         print("Nenhuma métrica válida encontrada.")
         return None
 
 # Exemplo de uso
 if __name__ == "__main__":
+    # Configure sua API do Facebook
+    app_id = 'SEU_APP_ID'
+    app_secret = 'SEU_APP_SECRET'
+    access_token = 'SEU_ACCESS_TOKEN'
+    FacebookAdsApi.init(app_id, app_secret, access_token)
+
     page_id = '1060285064080786'  # Substitua pelo ID da sua página
     start_date = '2024-10-26'
     end_date = '2024-11-05'
