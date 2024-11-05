@@ -31,7 +31,7 @@ def get_page_insights(page_id, start_date, end_date):
         try:
             # Verificar se a métrica é válida
             insights = page.get_insights(params={
-                'metric': metric,
+                'metric': [metric],  # Aqui, passamos a métrica como uma lista
                 'since': start_date,
                 'until': end_date,
                 'period': 'day'
@@ -46,7 +46,7 @@ def get_page_insights(page_id, start_date, end_date):
     if valid_metrics:
         print(f"Métricas válidas encontradas: {', '.join(valid_metrics)}")
         params = {
-            'metric': ','.join(valid_metrics),
+            'metric': valid_metrics,  # Passamos a lista de métricas válidas diretamente
             'since': start_date,
             'until': end_date,
             'period': 'day'
@@ -67,12 +67,13 @@ def get_page_insights(page_id, start_date, end_date):
         return None
 
 # Exemplo de uso
-page_id = '1060285064080786'  # Substitua pelo ID da sua página
-start_date = '2024-10-26'
-end_date = '2024-11-05'
+if __name__ == "__main__":
+    page_id = '1060285064080786'  # Substitua pelo ID da sua página
+    start_date = '2024-10-26'
+    end_date = '2024-11-05'
 
-insights = get_page_insights(page_id, start_date, end_date)
-if insights:
-    print(insights)
-else:
-    print("Não foi possível obter os insights.")
+    insights = get_page_insights(page_id, start_date, end_date)
+    if insights:
+        print(insights)
+    else:
+        print("Não foi possível obter os insights.")
