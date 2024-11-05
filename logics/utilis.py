@@ -1,57 +1,48 @@
-from dotenv import load_dotenv
-from pages.User_Engagement_and_Activity import *
-import os
-
-from logics.fetch_google_analytics_data import initialize_ga4_client
-from logics.fetch_google_analytics_data import get_metadata
+import streamlit as st
+import pandas as pd
+from datetime import datetime, timedelta
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 from logics.fetch_instagram import get_valid_metrics_by_days
-
+from logics.fetch_instagram import get_instagram_insights
+from logics.fetch_facebook import get_page_insights
 
 def load_google_api():
     try:
-        # Load environment variables from .env
-        load_dotenv()
-        # Get the key path from the environment variable
-        key_path = os.getenv('KEY_PATH')
-        if key_path is None:
-            print("Warning: KEY_PATH is not defined in the environment.")
-        # Check if all loaded variables are present in the environment
-        if not os.environ.get('KEY_PATH'):
-            print('Warning: KEY_PATH is not present in the environment.')
-        else:
-            print('Correctly deploy need to  Users')
-        # Initialize Google Analytics 4 client
-        client = initialize_ga4_client()
-        # client = initialize_ga4_client(key_path)
-        if client is None:
-            raise ValueError("Failed to initialize GA4 client")
-        property_id = '323323366'
-        # client = initialize_ga4_client(key_path)
-        dimensions, metrics = get_metadata(client, property_id)
-
-        return client, property_id, dimensions, metrics
-    
-    except ValueError as e:
-        print(f"ValueError: {e}")
-
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["google"],
+            scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+        )
+        service = build('sheets', 'v4', credentials=credentials)
+        return service
     except Exception as e:
-        print(f"Error fetching data: {e}")
-
+        st.error(f"Error loading Google API: {str(e)}")
+        return None
 
 def facebook_apis_tokens():
-    page_access_token    = st.secrets["access_tokens"]["page_access_token"]
-    user_access_token    = st.secrets["access_tokens"]["user_access_token"]
-    page_id              = st.secrets["facebook"]["page_id"]
-    adaccount_account_id = st.secrets["adaccount"]["adaccount_account_id"]
-    adaccount_id         = st.secrets["adaccount"]["adaccount_id"]
+    try:
+        return {
+            'user_access_token': st.secrets.access_tokens.user_access_token,
+            'page_access_token': st.secrets.access_tokens.page_access_token,
+            'page_id': st.secrets.facebook.page_id,
+            'instagram_user_id': st.secrets.instagram.instagram_user_id,
+            'adaccount_id': st.secrets.adaccount.adaccount_id
+        }
+    except Exception as e:
+        st.error(f"Error loading Facebook API tokens: {str(e)}")
+        return None
 
-    return page_access_token, user_access_token, page_id, adaccount_account_id, adaccount_id
+def instagram_api_data_fetch(instagram_user_id, start_date, end_date):
+    try:
+        return get_instagram_insights(instagram_user_id, start_date, end_date)
+    except Exception as e:
+        st.error(f"Error fetching Instagram data: {str(e)}")
+        return None
 
-
-def instagram_api_data_fetch():
-    metrics = get_valid_metrics_by_days()
-    period   = 'day'
-    lifetime = None
-
-    return metrics, period, lifetime
+def facebook_api_data_fetch(page_id, start_date, end_date):
+    try:
+        return get_page_insights(page_id, start_date, end_date)
+    except Exception as e:
+        st.error(f"Error fetching Facebook data: {str(e)}")
+        return None

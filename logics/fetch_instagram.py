@@ -3,6 +3,26 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 
+def get_valid_metrics_by_days(days=30):
+    if days <= 30:
+        return [
+            'impressions',
+            'reach',
+            'profile_views',
+            'follower_count',
+            'email_contacts',
+            'get_directions_clicks',
+            'phone_call_clicks',
+            'text_message_clicks',
+            'website_clicks'
+        ]
+    else:
+        return [
+            'impressions',
+            'reach',
+            'follower_count'
+        ]
+
 def fetch_instagram_insights(user_id, start_date, end_date, metrics, period='day'):
     access_token = st.secrets.access_tokens.user_access_token
     url = f"https://graph.facebook.com/v18.0/{user_id}/insights"
@@ -24,7 +44,6 @@ def fetch_instagram_insights(user_id, start_date, end_date, metrics, period='day
             st.error("No data received from Instagram API")
             return None
             
-        # Process the data
         processed_data = []
         for metric in data:
             metric_name = metric['name']
@@ -35,7 +54,6 @@ def fetch_instagram_insights(user_id, start_date, end_date, metrics, period='day
                     'value': value['value']
                 })
         
-        # Convert to DataFrame
         df = pd.DataFrame(processed_data)
         df = df.pivot(index='date', columns='metric', values='value').reset_index()
         return df
@@ -45,16 +63,6 @@ def fetch_instagram_insights(user_id, start_date, end_date, metrics, period='day
         return None
 
 def get_instagram_insights(instagram_user_id, start_date, end_date):
-    metrics = [
-        'impressions',
-        'reach',
-        'profile_views',
-        'follower_count',
-        'email_contacts',
-        'get_directions_clicks',
-        'phone_call_clicks',
-        'text_message_clicks',
-        'website_clicks'
-    ]
-    
+    days = (datetime.strptime(end_date, '%Y-%m-%d') - datetime.strptime(start_date, '%Y-%m-%d')).days
+    metrics = get_valid_metrics_by_days(days)
     return fetch_instagram_insights(instagram_user_id, start_date, end_date, metrics)
